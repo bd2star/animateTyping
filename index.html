@@ -148,6 +148,7 @@
       animateFontsize: 0
     }) {
       let htmlStr = `<a href="javascript:;" class="typing-animate-container">
+                        <input type="hidden">
                         <span class="typing-text ${params.initialText ? '' : 'placeholder'}" style="font-size: ${params.fontsize}px">${params.initialText ? params.initialText : params.placeholder}</span>
                         <span class="typeing-cursor" style="font-size:${params.fontsize}px;height:${params.fontsize}px;">|</span>
                       </a>`
@@ -157,12 +158,26 @@
       this.input = container.querySelector('.typing-animate-container')
       this.text = container.querySelector('.typing-text')
       this.cursor = container.querySelector('.typeing-cursor')
+      this.trueInput = container.querySelector('input')
 
       this.delType = 'left'
       this.t = null
 
       this.setCursorPosition()
+      this.setFocus()
       this.setEvent()
+    }
+
+    setFocus(){
+      let that = this
+      this.input.addEventListener('focus',function () {
+        var evt = document.createEvent("Events"); //还有onchange则是HtmlEvents
+        evt.initEvent('focus',true,true);
+        that.trueInput.dispatchEvent(evt);
+      })
+      that.trueInput.addEventListener('focus',function (e) {
+        e.stopPropagation()
+      })
     }
 
     setEvent() {
