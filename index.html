@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Title</title>
+  <title>animate of typing</title>
 </head>
 <style>
   html, body {
@@ -56,6 +56,10 @@
     color:transparent;
     box-sizing: border-box;
     caret-color:transparent;
+  }
+  @supports (-webkit-mask: none) and (not (cater-color: transparent)) {
+    .typing-animate-container input { color:transparent; }
+    .typing-animate-container input::first-line { color: transparent; }
   }
 
 
@@ -176,49 +180,46 @@
 
       this.animateFontsize = params.animateFontsize
 
+      this.typed = ''
       this.delType = 'left'
       this.t = null
 
-      this.setCursorPosition()
       this.setEvent()
     }
 
 
     setEvent() {
-      const limitText = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+      // const limitText = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+      // const limitKeycode = [8, 192, 9, 20, 16, 91, 17, 18, 32, 92, 13]
       let that = this
-      this.input.addEventListener('keydown', function (e) {
-        let key = e.key
 
-        if (limitText.indexOf(key) === -1) {
-          if (e.keyCode === 8) {
-            that.deleteText()
-          }
-        } else {
-          that.addText(key)
+      this.input.addEventListener('input', function (e) {
+        let text = this.value
+
+        if(e.data){
+          that.addText()
+        }else{
+          that.deleteText()
         }
+
         clearTimeout(that.t)
         that.t = setTimeout(() => {
           that.clearAnimateText()
         },.3*1000)
-        that.setCursorPosition()
-      })
-    }
 
-    setCursorPosition() {
-      // let textWidth = this.text.getBoundingClientRect()['width']
-      // this.cursor.style.left = `${textWidth + 2}px`
+      })
     }
 
     addText(text) {
       this.text.innerText += text
+      
       this.addAnimateText(text, 'add')
     }
 
     deleteText() {
       let delText = this.text.innerText[this.text.innerText.length - 1]
 
-      if(!delText) return
+      // if(!delText) return
 
       this.text.innerText = this.text.innerText.slice(0, this.text.innerText.length - 1)
 
