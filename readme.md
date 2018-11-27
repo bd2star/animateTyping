@@ -1,9 +1,8 @@
-write when boring once again
-
+write when boring, once again
+ 
 ## view on line
 
 https://qishaoxuan.github.io/animateTyping/
-
 
 ## refrence
 
