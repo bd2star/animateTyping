@@ -55,6 +55,7 @@
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
     color:transparent;
     box-sizing: border-box;
+    caret-color:transparent;
   }
 
 
@@ -188,7 +189,7 @@
       let that = this
       this.input.addEventListener('keydown', function (e) {
         let key = e.key
-console.log(key)
+
         if (limitText.indexOf(key) === -1) {
           if (e.keyCode === 8) {
             that.deleteText()
