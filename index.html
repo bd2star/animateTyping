@@ -35,50 +35,64 @@
     width: 300px;
     height: 34px;
     display: inline-block;
+    position: relative;
+    color: #fff;
     background: #2d2d2d;
+    box-sizing: border-box;
+  }
+  .typing-animate-container input{
+    width: 100%;
+    height:100%;
+    background: transparent;
+    z-index: 3;
+    line-height: 30px;
+    text-decoration: none;
     border: 1px solid #ccc;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
     border-radius: 4px;
     position: relative;
-    padding: 0 10px;
-    line-height: 30px;
-    text-decoration: none;
-    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
     cursor: text;
-    color: #fff;
-    position: relative;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    color:transparent;
+    box-sizing: border-box;
   }
 
-  .typing-animate-container:active {
-    color: #fff;
-  }
 
-  .typing-animate-container:focus {
+  .typing-animate-container input:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
     border-color: #66afe9;
     outline: 0;
   }
 
-  .typing-animate-container:focus .typeing-cursor {
+  .typing-animate-container input:focus ~ .typing-text::after  {
     display: block;
   }
 
   .typing-text {
-    line-height: 34px;
+    line-height: 36px;
+    position: absolute;
+    left:0;
+    top:0;
+    height:100%;
+    z-index: 1;
+    display: block;
+    padding:0 10px;
+    display: block;
   }
 
-  .typeing-cursor {
+  .typing-text::after {
     display: none;
+    content:'|';
     padding: 0 10px;
     color: #fff;
     text-align: left;
     overflow: hidden;
     animation: blingbling 0.8s infinite;
     position: absolute;
-    left: 15px;
+    right:-5px;
     top: 0;
-    bottom: 0;
-    margin: auto;
+    bottom:0;
+    margin:auto;
     line-height: 1;
     font-size: 16px;
     height: 16px;
@@ -92,6 +106,7 @@
     font-style: normal;
     bottom:0;
     opacity: 1;
+    z-index: 2;
   }
 
   .typing-animate-text.add {
@@ -145,47 +160,35 @@
       placeholder: '',
       initialText: '',
       fontsize: 16,
-      animateFontsize: 0
+      animateFontsize: 40
     }) {
-      let htmlStr = `<a href="javascript:;" class="typing-animate-container">
-                        <input type="hidden">
+      let htmlStr = `<div class="typing-animate-container">
+                        <input type="text">
                         <span class="typing-text ${params.initialText ? '' : 'placeholder'}" style="font-size: ${params.fontsize}px">${params.initialText ? params.initialText : params.placeholder}</span>
-                        <span class="typeing-cursor" style="font-size:${params.fontsize}px;height:${params.fontsize}px;">|</span>
-                      </a>`
+                      </div>`
       container.innerHTML = htmlStr
 
 
-      this.input = container.querySelector('.typing-animate-container')
+      this.container = container.querySelector('.typing-animate-container')
+      this.input = container.querySelector('input')
       this.text = container.querySelector('.typing-text')
-      this.cursor = container.querySelector('.typeing-cursor')
-      this.trueInput = container.querySelector('input')
+
+      this.animateFontsize = params.animateFontsize
 
       this.delType = 'left'
       this.t = null
 
       this.setCursorPosition()
-      this.setFocus()
       this.setEvent()
     }
 
-    setFocus(){
-      let that = this
-      this.input.addEventListener('focus',function () {
-        var evt = document.createEvent("Events"); //还有onchange则是HtmlEvents
-        evt.initEvent('focus',true,true);
-        that.trueInput.dispatchEvent(evt);
-      })
-      that.trueInput.addEventListener('focus',function (e) {
-        e.stopPropagation()
-      })
-    }
 
     setEvent() {
       const limitText = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
       let that = this
       this.input.addEventListener('keydown', function (e) {
         let key = e.key
-
+console.log(key)
         if (limitText.indexOf(key) === -1) {
           if (e.keyCode === 8) {
             that.deleteText()
@@ -202,8 +205,8 @@
     }
 
     setCursorPosition() {
-      let textWidth = this.text.getBoundingClientRect()['width']
-      this.cursor.style.left = `${textWidth + 2}px`
+      // let textWidth = this.text.getBoundingClientRect()['width']
+      // this.cursor.style.left = `${textWidth + 2}px`
     }
 
     addText(text) {
@@ -219,7 +222,7 @@
       this.text.innerText = this.text.innerText.slice(0, this.text.innerText.length - 1)
 
       this.addAnimateText(delText, 'del')
-      let newT = this.input.querySelectorAll('.typing-animate-text.del')[0]
+      let newT = this.container.querySelectorAll('.typing-animate-text.del')[0]
       let that = this
 
       setTimeout(() => {
@@ -233,15 +236,15 @@
     addAnimateText(text, className) {
       let textWidth = this.text.getBoundingClientRect()['width']
       let len = this.text.innerText.length
-      let animateTextPosition = textWidth - textWidth / len / 2
+      let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize/2
 
-      this.input.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${animateTextPosition}px">${text}</i>`))
+      this.container.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${animateTextPosition}px">${text}</i>`))
     }
 
     clearAnimateText() {
-      let dom = this.input.querySelectorAll(`.typing-animate-text`)
+      let dom = this.container.querySelectorAll(`.typing-animate-text`)
       dom.forEach((d) => {
-        this.input.removeChild(d)
+        this.container.removeChild(d)
       })
     }
 
