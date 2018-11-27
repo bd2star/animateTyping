@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>animate of typing</title>
 </head>
 <style>
@@ -13,15 +13,17 @@
     padding: 0;
     background: #2d2d2d;
   }
-  .title{
+
+  .title {
     font-size: 22px;
-    color:#fff;
+    color: #fff;
     position: absolute;
-    left:0;
-    top:40px;
-    width:100%;
+    left: 0;
+    top: 40px;
+    width: 100%;
     text-align: center;
   }
+
   .container {
     height: 100%;
     display: flex;
@@ -40,9 +42,10 @@
     background: #2d2d2d;
     box-sizing: border-box;
   }
-  .typing-animate-container input{
+
+  .typing-animate-container input {
     width: 100%;
-    height:100%;
+    height: 100%;
     background: transparent;
     z-index: 3;
     line-height: 30px;
@@ -53,15 +56,20 @@
     position: relative;
     cursor: text;
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-    color:transparent;
+    color: transparent;
     box-sizing: border-box;
-    caret-color:transparent;
-  }
-  @supports (-webkit-mask: none) and (not (cater-color: transparent)) {
-    .typing-animate-container input { color:transparent; }
-    .typing-animate-container input::first-line { color: transparent; }
+    caret-color: transparent;
   }
 
+  @supports (-webkit-mask: none) and (not (cater-color: transparent)) {
+    .typing-animate-container input {
+      color: transparent;
+    }
+
+    .typing-animate-container input::first-line {
+      color: transparent;
+    }
+  }
 
   .typing-animate-container input:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
@@ -69,35 +77,35 @@
     outline: 0;
   }
 
-  .typing-animate-container input:focus ~ .typing-text::after  {
+  .typing-animate-container input:focus ~ .typing-text::after {
     display: block;
   }
 
   .typing-text {
     line-height: 36px;
     position: absolute;
-    left:0;
-    top:0;
-    height:100%;
+    left: 0;
+    top: 0;
+    height: 100%;
     z-index: 1;
     display: block;
-    padding:0 10px;
+    padding: 0 10px;
     display: block;
   }
 
   .typing-text::after {
     display: none;
-    content:'|';
+    content: '|';
     padding: 0 10px;
     color: #fff;
     text-align: left;
     overflow: hidden;
     animation: blingbling 0.8s infinite;
     position: absolute;
-    right:-5px;
+    right: -5px;
     top: 0;
-    bottom:0;
-    margin:auto;
+    bottom: 0;
+    margin: auto;
     line-height: 1;
     font-size: 16px;
     height: 16px;
@@ -109,7 +117,7 @@
     font-size: 40px;
     color: #fff;
     font-style: normal;
-    bottom:0;
+    bottom: 0;
     opacity: 1;
     z-index: 2;
   }
@@ -119,7 +127,7 @@
   }
 
   .typing-animate-text.del {
-    transition:left .4s ease-in,bottom .4s ease-out,opacity .4s linear;
+    transition: left .4s ease-in, bottom .4s ease-out, opacity .4s linear;
   }
 
   .typing-animate-text.acitve {
@@ -196,24 +204,37 @@
       this.input.addEventListener('input', function (e) {
         let text = this.value
 
-        if(e.data){
+        if (e.data) {
           that.addText()
-        }else{
+        } else {
           that.deleteText()
         }
 
         clearTimeout(that.t)
         that.t = setTimeout(() => {
           that.clearAnimateText()
-        },.3*1000)
+        }, .3 * 1000)
 
       })
     }
 
-    addText(text) {
-      this.text.innerText += text
-      
-      this.addAnimateText(text, 'add')
+    addText() {
+      let diffIndex = -1
+      let addText = ''
+      let that = this;
+      [].forEach.call(this.input.value, function (t, i) {
+        if (that.typed[i] != t && diffIndex != -1) {
+          diffIndex = i
+        }
+      })
+
+      if (diffIndex === -1) {
+        addText = this.input.value[this.input.value.length - 1]
+        
+      }
+
+
+      this.addAnimateText(addText, 'add')
     }
 
     deleteText() {
@@ -228,17 +249,17 @@
       let that = this
 
       setTimeout(() => {
-        newT.style.left = that.delType==='left'?'0':'100%'
+        newT.style.left = that.delType === 'left' ? '0' : '100%'
         newT.style.bottom = '140px'
         newT.style.opacity = '0'
-        that.delType = that.delType==='left'?'right':'left'
+        that.delType = that.delType === 'left' ? 'right' : 'left'
       })
     }
 
     addAnimateText(text, className) {
       let textWidth = this.text.getBoundingClientRect()['width']
       let len = this.text.innerText.length
-      let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize/2
+      let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize / 2
 
       this.container.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${animateTextPosition}px">${text}</i>`))
     }
