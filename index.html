@@ -13,7 +13,15 @@
     padding: 0;
     background: #2d2d2d;
   }
-
+  .title{
+    font-size: 22px;
+    color:#fff;
+    position: absolute;
+    left:0;
+    top:40px;
+    width:100%;
+    text-align: center;
+  }
   .container {
     height: 100%;
     display: flex;
@@ -128,10 +136,11 @@
 </style>
 
 <body>
+<div class="title">Try to type and delete</div>
 <div class="container"></div>
 </body>
 <script>
-  class ta {
+  class typing {
     constructor(container = null, params = {
       placeholder: '',
       initialText: '',
@@ -229,6 +238,6 @@
 
   }
 
-  let a = new ta(document.querySelector('.container'))
+  let t = new typing(document.querySelector('.container'))
 </script>
 </html>
