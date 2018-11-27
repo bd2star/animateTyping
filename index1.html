@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>animate of typing</title>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Title</title>
 </head>
 <style>
   html, body {
@@ -56,22 +56,33 @@
     position: relative;
     cursor: text;
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-    color: transparent;
+    /*color: transparent;*/
     box-sizing: border-box;
-    caret-color: transparent;
+    /*caret-color: transparent;*/
     padding:0 10px;
+    color:#fff;
     font-size: 16px;
   }
+  .typing-shadow{
+    height:100%;
+    padding:0 10px;
+    font-size: 16px;
+    position:absolute;
+    left:0;top:0;
+    z-index: -1;
+    color:red;
 
-  @supports (-webkit-mask: none) and (not (cater-color: transparent)) {
-    .typing-animate-container input {
-      color: transparent;
-    }
-
-    .typing-animate-container input::first-line {
-      color: transparent;
-    }
   }
+
+  /*@supports (-webkit-mask: none) and (not (cater-color: transparent)) {*/
+    /*.typing-animate-container input {*/
+      /*color: transparent;*/
+    /*}*/
+
+    /*.typing-animate-container input::first-line {*/
+      /*color: transparent;*/
+    /*}*/
+  /*}*/
 
   .typing-animate-container input:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
@@ -141,11 +152,12 @@
     0% {
       opacity: .1;
       bottom: 140px;
+      transform: scale(1);
     }
     99% {
       opacity: 1;
       bottom: 0;
-      display: none;
+      transform: scale(.5);
     }
     100% {
       opacity: 0
@@ -164,120 +176,62 @@
     }
   }
 </style>
-
 <body>
 <div class="title">Try to type and delete</div>
-<div class="container"></div>
+<div class="container">
+
+</div>
 </body>
 <script>
-  class typing {
+  class typing{
     constructor(container = null, params = {
       placeholder: '',
       initialText: '',
       fontsize: 16,
       animateFontsize: 40,
-    }) {
-      let htmlStr = `<div class="typing-animate-container">
-                        <input type="text" style="font-size: ${params.fontsize}px">
-                        <span class="typing-text ${params.initialText ? '' : 'placeholder'}" style="font-size: ${params.fontsize}px">${params.initialText ? params.initialText : params.placeholder}</span>
-                      </div>`
-      container.innerHTML = htmlStr
+    }){
+      container.innerHTML = `<div class="typing-animate-container"><input type="text"><div class="typing-shadow"></div></div>`
 
+      this.fontsize = params.fontsize
+      this.animateFontsize = params.animateFontsize
 
       this.container = container.querySelector('.typing-animate-container')
       this.input = container.querySelector('input')
-      this.text = container.querySelector('.typing-text')
-
-      this.animateFontsize = params.animateFontsize
-
-      this.delType = 'left'
-      this.t = null
+      this.shadow = container.querySelector('.typing-shadow')
+      this.typed = ''
 
       this.setEvent()
     }
+    setEvent(){
+      const that = this
+      this.input.addEventListener('input',function () {
 
-
-    setEvent() {
-      let that = this
-
-      this.input.addEventListener('input', function (e) {
-        if (e.data) {
-          that.addText()
-        } else {
-          that.deleteText()
-        }
-
-        clearTimeout(that.t)
-        that.t = setTimeout(() => {
-          that.clearAnimateText()
-        }, .3 * 1000)
-
-      })
-    }
-
-    addText() {
-      let reg = /[\u4e00-\u9fa5]/g
-      let newText = ''
-
-      let diffIndex = -1
-
-      if (reg.test(this.input.value)) {
-        // 中文
-        let typed = this.text.innerText
-        ;[].forEach.call(this.input.value, function (t, i) {
-          if (typed[i] != t && diffIndex === -1) {
+        let diffIndex = -1
+          console.log(this.value)
+        ;[].forEach.call(this.value, function (t, i) {
+          if (that.typed[i] != t && diffIndex === -1) {
             diffIndex = i
           }
         })
 
-        let sameText = this.text.innerText.slice(0,diffIndex)
-        newText = this.input.value.slice(diffIndex)
+        // let sameText = that.typed.slice(0,diffIndex)
+        let newText = that.input.value.slice(diffIndex)
 
-        this.text.innerText = sameText + newText
+        that.addAnimateText(newText, 'add')
+        // this.text.innerText = sameText + newText
 
-      } else {
-        // 英文
-        newText = this.input.value[this.input.value.length - 1]
-
-        this.text.innerText += newText
-      }
-
-      this.addAnimateText(newText, 'add')
-
-    }
-
-    deleteText() {
-      let delText = this.text.innerText[this.text.innerText.length - 1]
-
-      // if(!delText) return
-
-      this.text.innerText = this.text.innerText.slice(0, this.text.innerText.length - 1)
-
-      this.addAnimateText(delText, 'del')
-      let newT = this.container.querySelectorAll('.typing-animate-text.del')[0]
-      let that = this
-
-      setTimeout(() => {
-        newT.style.left = that.delType === 'left' ? '0' : '100%'
-        newT.style.bottom = `${that.randomNum(100,140)}px`
-        newT.style.opacity = '0'
-        that.delType = that.delType === 'left' ? 'right' : 'left'
+        that.shadow.innerText = this.value
+        that.typed = this.value
       })
     }
 
     addAnimateText(text, className) {
-      let textWidth = this.text.getBoundingClientRect()['width']
-      let len = this.text.innerText.length
-      let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize / 2
+      let textWidth = this.shadow.getBoundingClientRect()['width']
+      let len = this.shadow.innerText.length
+      // let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize / 2
+      let animateTextPosition = textWidth - this.animateFontsize / 2
 
       this.container.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${animateTextPosition}px">${text}</i>`))
-    }
-
-    clearAnimateText() {
-      let dom = this.container.querySelectorAll(`.typing-animate-text`)
-      dom.forEach((d) => {
-        this.container.removeChild(d)
-      })
     }
 
     parseHTML(str) {
@@ -286,24 +240,8 @@
       return tmp.body.children[0]
     }
 
-     randomNum(min, max) {
-      switch (arguments.length) {
-        case 1:
-          return parseInt(Math.random() * min + 1, 10)
-        case 2:
-          return parseInt(Math.random() * (max - min + 1) + min, 10)
-        default:
-          return 0
-      }
-    }
-
-    focus() {
-      this.input.focus()
-    }
-
   }
-
   let t = new typing(document.querySelector('.container'))
-  t.focus()
+
 </script>
 </html>
