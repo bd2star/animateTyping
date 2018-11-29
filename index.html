@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>animate of typing</title>
+  <title>Title</title>
 </head>
 <style>
   html, body {
@@ -22,14 +22,21 @@
     top: 40px;
     width: 100%;
     text-align: center;
+    z-index: 2;
   }
 
   .container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1;
   }
+
 
 </style>
 <style>
@@ -43,7 +50,7 @@
     box-sizing: border-box;
   }
 
-  .typing-animate-container input {
+  .typing-animate-container .typing-animate-input {
     width: 100%;
     height: 100%;
     background: transparent;
@@ -59,58 +66,16 @@
     color: transparent;
     box-sizing: border-box;
     caret-color: transparent;
-    padding:0 10px;
+    padding: 0 10px;
     font-size: 16px;
+    color: #fff;
+    caret-color: #fff;
   }
 
-  @supports (-webkit-mask: none) and (not (cater-color: transparent)) {
-    .typing-animate-container input {
-      color: transparent;
-    }
-
-    .typing-animate-container input::first-line {
-      color: transparent;
-    }
-  }
-
-  .typing-animate-container input:focus {
+  .typing-animate-container .typing-animate-input:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
     border-color: #66afe9;
     outline: 0;
-  }
-
-  .typing-animate-container input:focus ~ .typing-text::after {
-    display: block;
-  }
-
-  .typing-text {
-    line-height: 36px;
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    z-index: 1;
-    display: block;
-    padding: 0 10px;
-    display: block;
-  }
-
-  .typing-text::after {
-    display: none;
-    content: '|';
-    padding: 0 10px;
-    color: #fff;
-    text-align: left;
-    overflow: hidden;
-    animation: blingbling 0.8s infinite;
-    position: absolute;
-    right: -5px;
-    top: 0;
-    bottom: 0;
-    margin: auto;
-    line-height: 1;
-    font-size: 16px;
-    height: 16px;
   }
 
   .typing-animate-text {
@@ -164,120 +129,96 @@
     }
   }
 </style>
-
 <body>
 <div class="title">Try to type and delete</div>
-<div class="container"></div>
+
+
+<div class="container">
+
+</div>
 </body>
 <script>
-  class typing {
-    constructor(container = null, params = {
-      placeholder: '',
-      initialText: '',
-      fontsize: 16,
+
+  class typingAnimate {
+    constructor(container, params = {
+      width: 300,
+      fontSize: 16,
+      lineHeight: 34,
       animateFontsize: 40,
+      animateFontColor: '#ffffff'
     }) {
-      let htmlStr = `<div class="typing-animate-container">
-                        <input type="text" style="font-size: ${params.fontsize}px">
-                        <span class="typing-text ${params.initialText ? '' : 'placeholder'}" style="font-size: ${params.fontsize}px">${params.initialText ? params.initialText : params.placeholder}</span>
+      let htmlStr = `<div class="typing-animate-container"  style="width:${params.width}px">
+                        <div class="typing-animate-input" contenteditable="true" style="font-size: ${params.fontSize}px;line-height: ${params.lineHeight}px"></div>
                       </div>`
       container.innerHTML = htmlStr
 
-
       this.container = container.querySelector('.typing-animate-container')
-      this.input = container.querySelector('input')
-      this.text = container.querySelector('.typing-text')
+      this.input = container.querySelector('.typing-animate-input')
 
-      this.animateFontsize = params.animateFontsize
+      this.styles = {
+        width: params.width,
+        height: params.height,
+        // paddingLeft: parseInt(this.getStyle(this.container, 'paddingLeft'))
+      }
 
+      let clone = this.input.cloneNode(false)
+      clone.setAttribute('id', 'typing-shadow')
+      clone.style.position = 'absolute'
+      clone.style.left = '-999px'
+      clone.style.top = '-999px'
+
+      document.body.appendChild(clone)
+
+      this.shadow = document.querySelector('#typing-shadow')
+
+      this.typed = ''
       this.delType = 'left'
-      this.t = null
-
       this.setEvent()
     }
 
-
     setEvent() {
       let that = this
+      this.container.addEventListener('input', function () {
+        let rangeData = window.getSelection().getRangeAt(0)
+        let endOffset = rangeData.endOffset
+        let text = that.input.innerText
 
-      this.input.addEventListener('input', function (e) {
-        if (e.data) {
-          that.addText()
+        let position = that.getPostion(text.slice(0, endOffset))
+        let newText = text.slice(endOffset - 1, endOffset)
+
+        if (text.length >= that.typed.length) {
+          that.addAnimateText(newText, 'add', position)
         } else {
-          that.deleteText()
+          that.deleteText(that.typed.slice(endOffset, endOffset + 1), position)
         }
-
-        clearTimeout(that.t)
-        that.t = setTimeout(() => {
-          that.clearAnimateText()
-        }, .3 * 1000)
-
+        that.typed = text
       })
     }
 
-    addText() {
-      let reg = /[\u4e00-\u9fa5]/g
-      let newText = ''
-
-      let diffIndex = -1
-
-      if (reg.test(this.input.value)) {
-        // 中文
-        let typed = this.text.innerText
-        ;[].forEach.call(this.input.value, function (t, i) {
-          if (typed[i] != t && diffIndex === -1) {
-            diffIndex = i
-          }
-        })
-
-        let sameText = this.text.innerText.slice(0,diffIndex)
-        newText = this.input.value.slice(diffIndex)
-
-        this.text.innerText = sameText + newText
-
-      } else {
-        // 英文
-        newText = this.input.value[this.input.value.length - 1]
-
-        this.text.innerText += newText
+    getPostion(str) {
+      this.shadow.innerText = str
+      const rect = this.shadow.getBoundingClientRect()
+      return {
+        left: rect.width % this.styles.width,
+        top: rect.height
       }
-
-      this.addAnimateText(newText, 'add')
-
     }
 
-    deleteText() {
-      let delText = this.text.innerText[this.text.innerText.length - 1]
-
-      // if(!delText) return
-
-      this.text.innerText = this.text.innerText.slice(0, this.text.innerText.length - 1)
-
-      this.addAnimateText(delText, 'del')
+    deleteText(text, position) {
+      this.addAnimateText(text, 'del', position)
       let newT = this.container.querySelectorAll('.typing-animate-text.del')[0]
       let that = this
 
       setTimeout(() => {
         newT.style.left = that.delType === 'left' ? '0' : '100%'
-        newT.style.bottom = `${that.randomNum(100,140)}px`
+        newT.style.bottom = `${that.randomNum(100, 140)}px`
         newT.style.opacity = '0'
         that.delType = that.delType === 'left' ? 'right' : 'left'
       })
     }
 
-    addAnimateText(text, className) {
-      let textWidth = this.text.getBoundingClientRect()['width']
-      let len = this.text.innerText.length
-      let animateTextPosition = textWidth - textWidth / len / 2 - this.animateFontsize / 2
-
-      this.container.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${animateTextPosition}px">${text}</i>`))
-    }
-
-    clearAnimateText() {
-      let dom = this.container.querySelectorAll(`.typing-animate-text`)
-      dom.forEach((d) => {
-        this.container.removeChild(d)
-      })
+    addAnimateText(text, className, position) {
+      this.container.insertAdjacentElement('afterbegin', this.parseHTML(`<i class="typing-animate-text ${className}" style="left:${position.left}px">${text}</i>`))
     }
 
     parseHTML(str) {
@@ -286,7 +227,11 @@
       return tmp.body.children[0]
     }
 
-     randomNum(min, max) {
+    getStyle(el, ruleName) {
+      return getComputedStyle(el, null)[ruleName]
+    }
+
+    randomNum(min, max) {
       switch (arguments.length) {
         case 1:
           return parseInt(Math.random() * min + 1, 10)
@@ -300,10 +245,10 @@
     focus() {
       this.input.focus()
     }
-
   }
 
-  let t = new typing(document.querySelector('.container'))
+
+  let t = new typingAnimate(document.querySelector('.container'))
   t.focus()
 </script>
 </html>
