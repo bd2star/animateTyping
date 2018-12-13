@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  body {
+    background: rgb(54, 59, 64);
+  }
+</style>
+<style>
+  .text-animate-input-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center
+  }
+
+  .text-animate-input {
+    /*height: 34px;*/
+    padding: 5px 12px;
+    line-height: 1.5;
+    /*line-height: 34px;*/
+    box-sizing: border-box;
+    font-size: 14px;
+    color: #fff;
+    background-color: transparent;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .text-animate-warpper {
+    position: relative;
+  }
+
+  .text-animate-input:focus {
+    border-color: #66afe9;
+    outline: 0;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+  }
+
+  .typing-animate-text {
+    position: absolute;
+    left: 0;
+    /*font-size: 40px;*/
+    color: #fff;
+    font-style: normal;
+    bottom: 0;
+    opacity: 1;
+  }
+
+  .typing-animate-text.add {
+    animation: addText .3s ease-out forwards;
+  }
+
+  .typing-animate-text.del {
+    transition: left .4s ease-in, bottom .4s ease-out, opacity .4s linear;
+  }
+
+  .typing-animate-text.acitve {
+    opacity: 1;
+    bottom: 0;
+  }
+
+  @keyframes addText {
+    0% {
+      opacity: .1;
+      font-size: 56px;
+      bottom: 140px;
+    }
+
+    99% {
+      opacity: 1;
+      bottom: 0;
+      font-size: 14px;
+      display: none;
+    }
+
+    100% {
+      opacity: 0
+    }
+  }
+</style>
+
+<body>
+</body>
+<script>
+  // TODO
+  // 动画文字的大小需要 css 变量实现
+  //-------------------------------------------
+  class textAnimate {
+    constructor(container, params = {
+      width: 300,
+      textColor: '#fff',
+      fontSize: 14,
+      text: '',
+      textScale: 4
+    }) {
+      this.params = params
+      // <span class="text-animate-input-span"></span>
+      container.innerHTML =
+        `<div class="text-animate-input-container">
+                    <div class="text-animate-warpper">
+                    <div class="text-animate-input" contenteditable="true" style="min-width:${this.params.width}px;font-size:${this.params.fontSize}px;"></div>
+</div>
+                </div>`
+
+      this.container = container.querySelector('.text-animate-input-container')
+      this.warpper = this.container.querySelector('.text-animate-warpper')
+      this.input = this.container.querySelector('.text-animate-input')
+
+      this.shadow = this.container.cloneNode(true)
+      this.shadowInput = this.shadow.querySelector('.text-animate-input')
+
+      this.shadow.style.cssText = 'position:absolute;left:0px;top:100px;z-index:-1;'
+      this.shadowInput.contenteditable = false
+      this.shadowInput.style.cssText = `display:inline-block;`
+      document.body.appendChild(this.shadow)
+
+      this.paddingLeft = parseInt(this.getStyle(this.shadowInput, 'paddingLeft'))
+      this.paddingBottom = parseInt(this.getStyle(this.shadowInput, 'paddingBottom'))
+      this.originText = this.params.text
+
+      this.setEvent()
+
+    }
+
+    setEvent() {
+      let that = this
+      this.input.addEventListener('input', function () {
+        let text = this.innerText
+        that.shadowInput.innerText = text
+        // let width = that.shadowInput.getBoundingClientRect()['width']
+
+        let newText = that.getDiff(text)
+        that.originText += newText.join('')
+
+        that.addAnimateText(newText, 'add')
+      })
+    }
+
+    getDiff(text) {
+      if (this.originText.length === 0) {
+        return text.split('')
+      }
+
+      let t = this.originText.split('')
+      let newT = text.split('')
+      for (let i = 0; i < newT.length; i++) {
+        if (t[i] != newT[i]) {
+          return newT.slice(i)
+        }
+      }
+    }
+
+    addAnimateText(texts, className) {
+      let textWidth = this.shadowInput.getBoundingClientRect()['width']
+      let animateTextPosition = textWidth
+      let fontsize = this.params.fontSize * this.params.textScale
+
+      texts.forEach((text,i) => {
+        this.warpper.insertAdjacentElement('afterbegin', this.parseHTML(
+          `<i class="typing-animate-text ${className}" style="left:${animateTextPosition - fontsize / 2 - (texts.length - i - 1) * fontsize }px;font-size: ${fontsize}px">${text}</i>`
+        ))
+      })
+
+    }
+    focus(){
+      this.input.focus()
+    }
+
+    parseHTML(str) {
+      let tmp = document.implementation.createHTMLDocument()
+      tmp.body.innerHTML = str
+      return tmp.body.children[0]
+    }
+
+
+    getStyle(el, ruleName) {
+      return getComputedStyle(el, null)[ruleName]
+    }
+  }
+
+  const body = document.querySelector('body')
+  const ta = new textAnimate(body)
+  ta.focus()
+</script>
+
+</html>
